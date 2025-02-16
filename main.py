@@ -9,6 +9,11 @@ def enviar_ticket():
     descripcion = text_descripcion.get("1.0", tk.END).strip()
     prioridad = combo_prioridad.get()
     
+    # Validación especial para Daniel Bernardo Huerta Rojas
+    if asignado_a == "Daniel Bernardo Huerta Rojas" and departamento != "Desarrollo de sistemas":
+        messagebox.showwarning("Advertencia", "Daniel Bernardo Huerta Rojas solo puede ser asignado a Desarrollo de sistemas.")
+        return
+
     if not nombre or not departamento or not asignado_a or not incidente or not prioridad or (incidente == "Otro" and not descripcion):
         messagebox.showwarning("Advertencia", "Todos los campos son obligatorios")
         return
