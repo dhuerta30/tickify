@@ -54,6 +54,7 @@ entry_nombre.grid(row=0, column=1, pady=5)
 tk.Label(frame, text="Asignado a:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5, sticky="w")
 combo_asignado = ttk.Combobox(frame, values=[
     "Jorge Nicolas Berrios Cornejo",
+    "Sergio Andrés Concha Llanos",
     "Juan Pablo Alvarez Avalos",
     "Elena Garrido Santibañez",
     "Cagny Nisse Gonzalez Castañeda",
