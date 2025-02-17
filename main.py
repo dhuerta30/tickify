@@ -33,13 +33,39 @@ def obtener_token(usuario, password):
         return None  # Manejo de error en caso de respuesta inválida
 
 
+def obtener_usuario_session(token, usuario):
+    """Obtiene la información del usuario autenticado usando un token JWT."""
+    conn = http.client.HTTPConnection("localhost")
+    headers = {
+        'Authorization': f'Bearer {token}'
+    }
+
+    conn.request("GET", f"/tickify/api/usuario/?where=usuario,{usuario}", headers=headers)
+    res = conn.getresponse()
+    data = res.read().decode("utf-8")
+
+    try:
+        respuesta_json = json.loads(data)  # Convertir la respuesta en JSON
+        
+        # Validamos si la API devolvió un token válido
+        if respuesta_json.get("error") is None and "data" in respuesta_json and respuesta_json["data"]:
+            return respuesta_json["data"]  # Retorna el token
+        
+        return None  # Retorna None si hubo un error o no hay token válido
+    
+    except json.JSONDecodeError:
+        return None  # Manejo de error en caso de respuesta inválida
+
+
 # --- Función para verificar el inicio de sesión ---
 def verificar_login():
     usuario = entry_usuario.get()
     clave = entry_clave.get()
     
     token = obtener_token(usuario, clave)
-    
+    usuario_data = obtener_usuario_session(token, usuario)
+    print("Usuario autenticado:", usuario_data)
+
     if token:
         messagebox.showinfo("Éxito", "Inicio de sesión exitoso")
         ventana_login.destroy()  # Cierra la ventana de login
