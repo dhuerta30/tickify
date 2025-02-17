@@ -1,29 +1,63 @@
 import tkinter as tk
+import http.client
+import json
 from tkinter import ttk, messagebox
 
-# --- Variables de autenticación ---
-USUARIO_CORRECTO = "admin"
-CLAVE_CORRECTA = "1234"
+def obtener_token(usuario, password):
+    """Realiza una solicitud HTTP para obtener un token de autenticación."""
+    conn = http.client.HTTPConnection("localhost")
+    payload = json.dumps({
+        "data": {
+            "usuario": usuario,
+            "password": password
+        }
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    
+    conn.request("POST", "/tickify/api/usuario/?op=jwtauth", payload, headers)
+    res = conn.getresponse()
+    data = res.read().decode("utf-8")
+    
+    try:
+        respuesta_json = json.loads(data)  # Convertir la respuesta en JSON
+        
+        # Validamos si la API devolvió un token válido
+        if respuesta_json.get("error") is None and "data" in respuesta_json and respuesta_json["data"]:
+            return respuesta_json["data"]  # Retorna el token
+        
+        return None  # Retorna None si hubo un error o no hay token válido
+    
+    except json.JSONDecodeError:
+        return None  # Manejo de error en caso de respuesta inválida
+
 
 # --- Función para verificar el inicio de sesión ---
 def verificar_login():
     usuario = entry_usuario.get()
     clave = entry_clave.get()
     
-    if usuario == USUARIO_CORRECTO and clave == CLAVE_CORRECTA:
+    token = obtener_token(usuario, clave)
+    
+    if token:
+        messagebox.showinfo("Éxito", "Inicio de sesión exitoso")
         ventana_login.destroy()  # Cierra la ventana de login
-        iniciar_aplicacion()  # Inicia la aplicación principal
+        iniciar_aplicacion(token)  # Inicia la aplicación principal con el token
     else:
         messagebox.showerror("Error", "Usuario o contraseña incorrectos")
+
 
 def cerrar_sesion():
     app.destroy()
     mostrar_login()
 
 # --- Función para iniciar la aplicación principal ---
-def iniciar_aplicacion():
+def iniciar_aplicacion(token):
     global app, entry_nombre, entry_departamento, combo_asignado, combo_incidente
     global text_descripcion, combo_prioridad, tree, label_descripcion
+
+    print(token)
 
     app = tk.Tk()
     app.title("Tickify - Gestión de Tickets")
@@ -170,7 +204,7 @@ def actualizar_departamentos(event):
 
     # Actualizar los valores de los combobox
     entry_departamento["values"] = departamento
-    entry_departamento.set(departamento[0])
+    entry_departamento.set("")
 
     combo_incidente["values"] = incidentes
     combo_incidente.set("")
