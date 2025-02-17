@@ -5,7 +5,7 @@ from tkinter import ttk, messagebox
 
 def obtener_token(usuario, password):
     """Realiza una solicitud HTTP para obtener un token de autenticación."""
-    conn = http.client.HTTPConnection("localhost")
+    conn = http.client.HTTPSConnection("developmentserver.cl")
     payload = json.dumps({
         "data": {
             "usuario": usuario,
@@ -35,7 +35,7 @@ def obtener_token(usuario, password):
 
 def obtener_usuario_session(token, usuario):
     """Obtiene la información del usuario autenticado usando un token JWT."""
-    conn = http.client.HTTPConnection("localhost")
+    conn = http.client.HTTPSConnection("developmentserver.cl")
     headers = {
         'Authorization': f'Bearer {token}'
     }
