@@ -115,7 +115,7 @@ def obtener_datos_tabla_usuario(token, usuario_session_data):
     except json.JSONDecodeError:
         return None  # Manejo de
     
-
+#=================== Cargar Datos en la Grilla ==========================#
 def cargar_datos_en_grilla(tree, token, usuario_session_data):
     """Carga los datos en la grilla (Treeview)."""
     tree.delete(*tree.get_children())  # Limpiar la tabla antes de insertar nuevos datos
@@ -397,6 +397,8 @@ def enviar_ticket(token):
     )
 
     messagebox.showinfo("Éxito", "Ticket registrado con éxito, enviaremos un técnico para que resuelva su problema a la brevedad.")
+
+    cargar_datos_en_grilla(tree, token, nombre)
 
     # Limpiar los campos después del registro
     entry_departamento.set("")
