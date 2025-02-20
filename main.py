@@ -63,7 +63,7 @@ def send_email(to_email, subject, body, smtp_server, smtp_port, username, passwo
         server.login(username, password)
         server.send_message(msg, from_addr=username, to_addrs=recipients)
 
-    print("📨 Correo enviado exitosamente!")
+    #print("📨 Correo enviado exitosamente!")
 
 #=================== Obtener Datos usuario de la sessión ==========================#
 def obtener_usuario_session(token, usuario):
@@ -99,7 +99,7 @@ def obtener_datos_tabla_usuario(token, usuario_session_data):
         'Authorization': f'Bearer {token}'
     }
 
-    conn.request("GET", f"/tickify/api/soporte/?where=usuario,{usuario_session_data},eq&where[]=status,Ingresado,eq", headers=headers)
+    conn.request("GET", f"/tickify/api/soporte/?where=cliente,{usuario_session_data},eq&where[]=status,Ingresado,eq", headers=headers)
     res = conn.getresponse()
     data = res.read().decode("utf-8")
 
@@ -119,11 +119,14 @@ def obtener_datos_tabla_usuario(token, usuario_session_data):
 def cargar_datos_en_grilla(tree, token, usuario_session_data):
     """Carga los datos en la grilla (Treeview)."""
     tree.delete(*tree.get_children())  # Limpiar la tabla antes de insertar nuevos datos
-    
+
     datos = obtener_datos_tabla_usuario(token, usuario_session_data)
+    
+    # Si no hay datos, salir de la función sin agregar filas
+    if not datos:
+        return
 
     for item in datos:
-
         fecha_formateada = (
             datetime.strptime(item.get("fecha", ""), "%Y-%m-%d").strftime("%d/%m/%Y") 
             if item.get("fecha", "") else ""
@@ -146,7 +149,6 @@ def registrar_usuario():
     correo = entry_correo.get()
     usuario = entry_usuario_reg.get()
     clave = entry_clave_reg.get()
-    token = obtener_token("admin", "123")
 
     if not (nombre and correo and usuario and clave):
         messagebox.showerror("Error", "Todos los campos son obligatorios")
@@ -157,29 +159,33 @@ def registrar_usuario():
 
     conn = http.client.HTTPSConnection("developmentserver.cl")
     payload = json.dumps({
-        "data": {
-            "nombre": nombre,
-            "email": correo,
-            "usuario": usuario,
-            "password": hashed_password,
-            "idrol": "1",
-            "estatus": "1"
-        }
+        "tabla": "usuario",
+        "nombre": nombre,
+        "email": correo,
+        "usuario": usuario,
+        "password": hashed_password,
+        "idrol": "1",
+        "estatus": "1"
     })
     headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {token}'
+        'Content-Type': 'application/json'
     }
 
     # Enviar solicitud POST
-    conn.request("POST", "/tickify/api/usuario", payload, headers)
+    conn.request("POST", "/tickify/Restp/insertar", payload, headers)
     res = conn.getresponse()
     data = res.read()
 
     # Mostrar respuesta de la API
-    print("Respuesta de la API:", data.decode("utf-8"))
+    #print("Respuesta de la API:", data.decode("utf-8"))
 
     messagebox.showinfo("Éxito", f"Registrando usuario: {nombre}, {correo}, {usuario}")
+
+    # Limpiar los campos después del registro
+    entry_nombre.delete(0, tk.END)
+    entry_correo.delete(0, tk.END)
+    entry_usuario_reg.delete(0, tk.END)
+    entry_clave_reg.delete(0, tk.END)
 
 
 #============= Función para verificar el inicio de sesión =============#
@@ -209,7 +215,7 @@ def iniciar_aplicacion(token, usuario_session_data):
 
     app = tk.Tk()
     app.title("Tickify - Gestión de Tickets - Versión 1.0")
-    app.geometry("600x600")
+    app.geometry("800x800")
     app.config(bg="#f0f0f0")
 
     # Cargar imagen
@@ -230,15 +236,20 @@ def iniciar_aplicacion(token, usuario_session_data):
     frame_formulario = tk.Frame(notebook, bg="#f0f0f0")
     frame_tabla = tk.Frame(notebook, bg="#f0f0f0")
 
+    style = ttk.Style()
+    style.configure("TNotebook.Tab", font=("Arial", 16), padding=[20, 10])
+
     notebook.add(frame_formulario, text="Agregar Ticket")
     notebook.add(frame_tabla, text="Mis Tickets")
+
+    app.option_add('*TCombobox*Listbox.Font', ("Arial", 16))
 
     # --- Formulario ---
     frame = tk.Frame(frame_formulario, bg="#f0f0f0")
     frame.pack(pady=20)
 
-    tk.Label(frame, text="Nombre del Funcionario:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5, sticky="w")
-    entry_nombre = tk.Entry(frame, width=40, font=("Arial", 10))
+    tk.Label(frame, text="Nombre del Funcionario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5, sticky="w")
+    entry_nombre = tk.Entry(frame, width=40, font=("Arial", 16))
     entry_nombre.grid(row=0, column=1, pady=5)
     
     
@@ -251,7 +262,7 @@ def iniciar_aplicacion(token, usuario_session_data):
 
     entry_nombre.insert(0, nombre_usuario)
 
-    tk.Label(frame, text="Asignado a:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5, sticky="w")
+    tk.Label(frame, text="Asignado a:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5, sticky="w")
     combo_asignado = ttk.Combobox(frame, values=[
         "Jorge Nicolas Berrios Cornejo",
         "Sergio Andrés Concha Llanos",
@@ -259,15 +270,15 @@ def iniciar_aplicacion(token, usuario_session_data):
         "Elena Garrido Santibañez",
         "Daniel Bernardo Huerta Rojas",
         "Leonardo Antonio Martinez Vera"
-    ], state="readonly", width=38, font=("Arial", 10))
+    ], state="readonly", width=38, font=("Arial", 16))
     combo_asignado.grid(row=1, column=1, pady=5)
     combo_asignado.bind("<<ComboboxSelected>>", actualizar_departamentos)
 
-    tk.Label(frame, text="Departamento:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5, sticky="w")
-    entry_departamento = ttk.Combobox(frame, values=["Soporte Informática", "Desarrollo de Sistemas"], state="readonly", width=38, font=("Arial", 10))
+    tk.Label(frame, text="Departamento:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5, sticky="w")
+    entry_departamento = ttk.Combobox(frame, values=["Soporte Informática", "Desarrollo de Sistemas"], state="readonly", width=38, font=("Arial", 16))
     entry_departamento.grid(row=2, column=1, pady=5)
 
-    tk.Label(frame, text="Incidente:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=3, column=0, pady=5, sticky="w")
+    tk.Label(frame, text="Incidente:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=3, column=0, pady=5, sticky="w")
     combo_incidente = ttk.Combobox(frame, values=[
         "Instalación de Office",
         "Instalación de Antivirus",
@@ -279,18 +290,18 @@ def iniciar_aplicacion(token, usuario_session_data):
         "Impresión Defectuosa",
         "Reportar Impresora Defectuosa",
         "Otro"
-    ], state="readonly", width=38, font=("Arial", 10))
+    ], state="readonly", width=38, font=("Arial", 16))
     combo_incidente.grid(row=3, column=1, pady=5)
     combo_incidente.bind("<<ComboboxSelected>>", mostrar_descripcion)
 
-    label_descripcion = tk.Label(frame, text="Descripción:", font=("Arial", 10, "bold"), bg="#f0f0f0")
-    text_descripcion = tk.Text(frame, width=40, height=5, font=("Arial", 10))
+    label_descripcion = tk.Label(frame, text="Descripción:", font=("Arial", 16, "bold"), bg="#f0f0f0")
+    text_descripcion = tk.Text(frame, width=40, height=5, font=("Arial", 16))
 
-    tk.Label(frame, text="Prioridad:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=4, column=0, pady=5, sticky="w")
-    combo_prioridad = ttk.Combobox(frame, values=["Alta", "Media", "Baja"], state="readonly", width=38, font=("Arial", 10))
+    tk.Label(frame, text="Prioridad:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=4, column=0, pady=5, sticky="w")
+    combo_prioridad = ttk.Combobox(frame, values=["Alta", "Media", "Baja"], state="readonly", width=38, font=("Arial", 16))
     combo_prioridad.grid(row=4, column=1, pady=5)
 
-    button_enviar = tk.Button(frame_formulario, text="Enviar Ticket", command=lambda: enviar_ticket(token), font=("Arial", 12, "bold"), bg="#4CAF50", fg="white", relief="flat", width=20, height=2)
+    button_enviar = tk.Button(frame_formulario, text="Enviar Ticket", command=lambda: enviar_ticket(token), font=("Arial", 16, "bold"), bg="#4CAF50", fg="white", relief="flat", width=20, height=2)
     button_enviar.pack(pady=20)
 
     # --- Botón de Cerrar Sesión ---
@@ -312,7 +323,7 @@ def iniciar_aplicacion(token, usuario_session_data):
     # Cargar datos en la grilla
     cargar_datos_en_grilla(tree, token, usuario_usuario)
 
-    button_eliminar = tk.Button(frame_tabla, text="Eliminar Ticket", command=eliminar_ticket, font=("Arial", 12, "bold"), bg="#D32F2F", fg="white", relief="flat", width=20, height=2)
+    button_eliminar = tk.Button(frame_tabla, text="Anular Ticket", command=anular_ticket, font=("Arial", 12, "bold"), bg="#D32F2F", fg="white", relief="flat", width=20, height=2)
     button_eliminar.pack(pady=10)
 
     app.mainloop()
@@ -408,10 +419,10 @@ def enviar_ticket(token):
     combo_prioridad.set("")
 
 #=========== Eliminar Ticket ===============#
-def eliminar_ticket():
+def anular_ticket():
     selected_item = tree.selection()
     if not selected_item:
-        messagebox.showwarning("Advertencia", "Seleccione un ticket para eliminar.")
+        messagebox.showwarning("Advertencia", "Seleccione un ticket para Anular.")
         return
     messagebox.showinfo("Éxito", "Ticket Eliminado con éxito.")
     tree.delete(selected_item)
@@ -464,7 +475,7 @@ def mostrar_login():
 
     ventana_login = tk.Tk()
     ventana_login.title("Tickify - Acceso Funcionarios a Ticket de Soporte - Versión 1.0")
-    ventana_login.geometry("600x500")
+    ventana_login.geometry("800x700")
     ventana_login.config(bg="#f0f0f0")
 
     # Cargar imagen
@@ -478,6 +489,9 @@ def mostrar_login():
         label_imagen.pack(pady=20)
     except Exception as e:
         print(f"Error cargando la imagen: {e}")
+
+    style = ttk.Style()
+    style.configure("TNotebook.Tab", font=("Arial", 16), padding=[20, 10])
 
     # Notebook (Pestañas)
     notebook = ttk.Notebook(ventana_login)
@@ -496,12 +510,12 @@ def mostrar_login():
     frame_login_form = tk.Frame(frame_login, bg="#f0f0f0")
     frame_login_form.pack(pady=20)
 
-    tk.Label(frame_login_form, text="Usuario:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5)
-    entry_usuario = tk.Entry(frame_login_form, width=30, font=("Arial", 10))
+    tk.Label(frame_login_form, text="Usuario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5)
+    entry_usuario = tk.Entry(frame_login_form, width=30, font=("Arial", 16))
     entry_usuario.grid(row=0, column=1, pady=5)
 
-    tk.Label(frame_login_form, text="Contraseña:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5)
-    entry_clave = tk.Entry(frame_login_form, show="*", width=30, font=("Arial", 10))
+    tk.Label(frame_login_form, text="Contraseña:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5)
+    entry_clave = tk.Entry(frame_login_form, show="*", width=30, font=("Arial", 16))
     entry_clave.grid(row=1, column=1, pady=5)
 
     tk.Button(frame_login_form, text="Iniciar Sesión", command=verificar_login, font=("Arial", 12, "bold"),
@@ -511,27 +525,27 @@ def mostrar_login():
     frame_registro_form = tk.Frame(frame_registro, bg="#f0f0f0")
     frame_registro_form.pack(pady=20)
 
-    tk.Label(frame_registro_form, text="Nombre del Funcionario:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5)
-    entry_nombre = tk.Entry(frame_registro_form, width=30, font=("Arial", 10))
+    tk.Label(frame_registro_form, text="Nombre del Funcionario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5)
+    entry_nombre = tk.Entry(frame_registro_form, width=30, font=("Arial", 16))
     entry_nombre.grid(row=0, column=1, pady=5)
 
-    tk.Label(frame_registro_form, text="Correo electrónico:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5)
-    entry_correo = tk.Entry(frame_registro_form, width=30, font=("Arial", 10))
+    tk.Label(frame_registro_form, text="Correo electrónico:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5)
+    entry_correo = tk.Entry(frame_registro_form, width=30, font=("Arial", 16))
     entry_correo.grid(row=1, column=1, pady=5)
 
-    tk.Label(frame_registro_form, text="Usuario:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5)
-    entry_usuario_reg = tk.Entry(frame_registro_form, width=30, font=("Arial", 10))
+    tk.Label(frame_registro_form, text="Usuario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5)
+    entry_usuario_reg = tk.Entry(frame_registro_form, width=30, font=("Arial", 16))
     entry_usuario_reg.grid(row=2, column=1, pady=5)
 
-    tk.Label(frame_registro_form, text="Contraseña:", font=("Arial", 10, "bold"), bg="#f0f0f0").grid(row=3, column=0, pady=5)
-    entry_clave_reg = tk.Entry(frame_registro_form, show="*", width=30, font=("Arial", 10))
+    tk.Label(frame_registro_form, text="Contraseña:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=3, column=0, pady=5)
+    entry_clave_reg = tk.Entry(frame_registro_form, show="*", width=30, font=("Arial", 16))
     entry_clave_reg.grid(row=3, column=1, pady=5)
 
-    tk.Button(frame_registro_form, text="Registrar", command=registrar_usuario, font=("Arial", 12, "bold"),
+    tk.Button(frame_registro_form, text="Registrar", command=registrar_usuario, font=("Arial", 16, "bold"),
               bg="#008CBA", fg="white", relief="flat", width=15, height=2).grid(row=5, column=0, columnspan=2, pady=20)
 
      # ==================== GUÍA DE USO ====================
-    label_guia = tk.Label(frame_guia, text="Guía de Uso", font=("Arial", 14, "bold"), bg="#f0f0f0")
+    label_guia = tk.Label(frame_guia, text="Guía de Uso", font=("Arial", 16, "bold"), bg="#f0f0f0")
     label_guia.pack(pady=10)
 
     texto_guia = """
@@ -542,7 +556,7 @@ def mostrar_login():
     5. Presiona 'Iniciar Sesión' para acceder al sistema.
     """
     
-    label_texto_guia = tk.Label(frame_guia, text=texto_guia, font=("Arial", 10), bg="#f0f0f0", justify="left")
+    label_texto_guia = tk.Label(frame_guia, text=texto_guia, font=("Arial", 16), bg="#f0f0f0", justify="left")
     label_texto_guia.pack(padx=20, pady=10)
 
     ventana_login.mainloop()
