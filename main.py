@@ -147,10 +147,10 @@ def cargar_datos_en_grilla(tree, token, usuario_session_data):
 def registrar_usuario():
     nombre = entry_nombre.get()
     correo = entry_correo.get()
-    usuario = entry_usuario_reg.get()
+    rut = entry_rut_reg.get()
     clave = entry_clave_reg.get()
 
-    if not (nombre and correo and usuario and clave):
+    if not (nombre and correo and rut and clave):
         messagebox.showerror("Error", "Todos los campos son obligatorios")
         return
 
@@ -162,7 +162,7 @@ def registrar_usuario():
         "tabla": "usuario",
         "nombre": nombre,
         "email": correo,
-        "usuario": usuario,
+        "rut": rut,
         "password": hashed_password,
         "idrol": "1",
         "estatus": "1"
@@ -179,12 +179,12 @@ def registrar_usuario():
     # Mostrar respuesta de la API
     #print("Respuesta de la API:", data.decode("utf-8"))
 
-    messagebox.showinfo("Éxito", f"Registrando usuario: {nombre}, {correo}, {usuario}")
+    messagebox.showinfo("Éxito", f"Registrando usuario: {nombre}, {correo}, {rut}")
 
     # Limpiar los campos después del registro
     entry_nombre.delete(0, tk.END)
     entry_correo.delete(0, tk.END)
-    entry_usuario_reg.delete(0, tk.END)
+    entry_rut_reg.delete(0, tk.END)
     entry_clave_reg.delete(0, tk.END)
 
 
@@ -471,7 +471,7 @@ def actualizar_departamentos(event):
 #============ Función para mostrar el login nuevamente ==============#
 def mostrar_login():
     global ventana_login, entry_rut, entry_clave
-    global entry_nombre, entry_correo, entry_usuario_reg, entry_clave_reg
+    global entry_nombre, entry_correo, entry_rut_reg, entry_clave_reg
 
     ventana_login = tk.Tk()
     ventana_login.title("Tickify - Acceso Funcionarios a Ticket de Soporte - Versión 1.0")
@@ -534,8 +534,8 @@ def mostrar_login():
     entry_correo.grid(row=1, column=1, pady=5)
 
     tk.Label(frame_registro_form, text="Rut:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5)
-    entry_usuario_reg = tk.Entry(frame_registro_form, width=30, font=("Arial", 16))
-    entry_usuario_reg.grid(row=2, column=1, pady=5)
+    entry_rut_reg = tk.Entry(frame_registro_form, width=30, font=("Arial", 16))
+    entry_rut_reg.grid(row=2, column=1, pady=5)
 
     tk.Label(frame_registro_form, text="Contraseña:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=3, column=0, pady=5)
     entry_clave_reg = tk.Entry(frame_registro_form, show="*", width=30, font=("Arial", 16))
