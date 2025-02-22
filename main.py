@@ -221,7 +221,7 @@ def iniciar_aplicacion(token, usuario_session_data):
     # Cargar imagen
     try:
         imagen_original = Image.open("logo.png")
-        imagen_resized = imagen_original.resize((390, 136))
+        imagen_resized = imagen_original.resize((200, 60))
         imagen = ImageTk.PhotoImage(imagen_resized)
 
         label_imagen = tk.Label(app, image=imagen, bg="#f0f0f0")
@@ -481,7 +481,7 @@ def mostrar_login():
     # Cargar imagen
     try:
         imagen_original = Image.open("logo.png")
-        imagen_resized = imagen_original.resize((390, 136))
+        imagen_resized = imagen_original.resize((200, 60))
         imagen = ImageTk.PhotoImage(imagen_resized)
 
         label_imagen = tk.Label(ventana_login, image=imagen)
