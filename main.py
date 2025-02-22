@@ -424,7 +424,7 @@ def anular_ticket():
     if not selected_item:
         messagebox.showwarning("Advertencia", "Seleccione un ticket para Anular.")
         return
-    messagebox.showinfo("Éxito", "Ticket Eliminado con éxito.")
+    messagebox.showinfo("Éxito", "Ticket Anulado con éxito.")
     tree.delete(selected_item)
 
 #============= Mostrar Descripcion ==================#
