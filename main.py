@@ -8,6 +8,7 @@ from email.message import EmailMessage
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 from datetime import datetime
+from urllib.parse import quote
 
 def obtener_token(rut, password):
     """Realiza una solicitud HTTP para obtener un token de autenticación."""
@@ -64,6 +65,8 @@ def send_email(to_email, subject, body, smtp_server, smtp_port, username, passwo
         server.send_message(msg, from_addr=username, to_addrs=recipients)
 
     #print("📨 Correo enviado exitosamente!")
+    messagebox.showinfo("Éxito", "Correo enviado exitosamente!")
+
 
 #=================== Obtener Datos usuario de la sessión ==========================#
 def obtener_usuario_session(token, rut):
@@ -99,10 +102,13 @@ def obtener_datos_tabla_usuario(token, usuario_session_data):
         'Authorization': f'Bearer {token}'
     }
 
-    conn.request("GET", f"/tickify/api/soporte/?where=cliente,{usuario_session_data},eq&where[]=status,Ingresado,eq", headers=headers)
+    cliente = quote(usuario_session_data)
+    status = quote("Ingresado")
+
+    conn.request("GET", f"/tickify/api/soporte/?where=cliente,{cliente},eq&where[]=status,{status},eq", headers=headers)
     res = conn.getresponse()
     data = res.read().decode("utf-8")
-
+   
     try:
         respuesta_json = json.loads(data)  # Convertir la respuesta en JSON
         
@@ -121,7 +127,7 @@ def cargar_datos_en_grilla(tree, token, usuario_session_data):
     tree.delete(*tree.get_children())  # Limpiar la tabla antes de insertar nuevos datos
 
     datos = obtener_datos_tabla_usuario(token, usuario_session_data)
-    
+   
     # Si no hay datos, salir de la función sin agregar filas
     if not datos:
         return
@@ -337,9 +343,6 @@ def enviar_ticket(token):
     incidente = combo_incidente.get()
     descripcion = text_descripcion.get("1.0", tk.END).strip() or "Sin Descripción"
     prioridad = combo_prioridad.get()
-
-    #token = obtener_token("admin", "123")
-
     fecha_creacion = datetime.now().strftime("%Y-%m-%d")
 
     # Validaciones antes de enviar
@@ -376,6 +379,7 @@ def enviar_ticket(token):
     # Enviar solicitud POST a la API
     conn.request("POST", "/tickify/api/soporte", body=json.dumps(datos_ticket), headers=headers)
     response = conn.getresponse()
+    print(response)
 
     # Estructura del correo en HTML
     email_body = f"""
@@ -412,11 +416,12 @@ def enviar_ticket(token):
     cargar_datos_en_grilla(tree, token, nombre)
 
     # Limpiar los campos después del registro
-    entry_departamento.set("")
-    combo_asignado.set("")
-    combo_incidente.set("")
+    entry_departamento.delete(0, tk.END)
+    combo_asignado.delete(0, tk.END)
+    combo_incidente.delete(0, tk.END)
     text_descripcion.delete("1.0", tk.END)
-    combo_prioridad.set("")
+    combo_prioridad.delete(0, tk.END)
+
 
 #=========== Eliminar Ticket ===============#
 def anular_ticket():
