@@ -201,7 +201,7 @@ def verificar_login():
         ventana_login.destroy()  # Cierra la ventana de login
         iniciar_aplicacion(token, usuario_session_data)  # Inicia la aplicación principal con el token
     else:
-        messagebox.showerror("Error", "Usuario o contraseña incorrectos")
+        messagebox.showerror("Error", "Rut o contraseña incorrectos")
 
 
 def cerrar_sesion():
@@ -461,12 +461,12 @@ def actualizar_departamentos(event):
             "Instalación de Antivirus", "Otro"
         ]
 
-    # Actualizar los valores de los combobox
-    entry_departamento["values"] = departamento
-    entry_departamento.set("")
+        # Actualizar los valores de los combobox
+        entry_departamento["values"] = departamento
+        entry_departamento.set("")
 
-    combo_incidente["values"] = incidentes
-    combo_incidente.set("")
+        combo_incidente["values"] = incidentes
+        combo_incidente.set("")
 
 #============ Función para mostrar el login nuevamente ==============#
 def mostrar_login():
