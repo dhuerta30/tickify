@@ -9,12 +9,12 @@ from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 from datetime import datetime
 
-def obtener_token(usuario, password):
+def obtener_token(rut, password):
     """Realiza una solicitud HTTP para obtener un token de autenticación."""
     conn = http.client.HTTPSConnection("developmentserver.cl")
     payload = json.dumps({
         "data": {
-            "usuario": usuario,
+            "rut": rut,
             "password": password
         }
     })
@@ -66,14 +66,14 @@ def send_email(to_email, subject, body, smtp_server, smtp_port, username, passwo
     #print("📨 Correo enviado exitosamente!")
 
 #=================== Obtener Datos usuario de la sessión ==========================#
-def obtener_usuario_session(token, usuario):
+def obtener_usuario_session(token, rut):
     """Obtiene la información del usuario autenticado usando un token JWT."""
     conn = http.client.HTTPSConnection("developmentserver.cl")
     headers = {
         'Authorization': f'Bearer {token}'
     }
 
-    conn.request("GET", f"/tickify/api/usuario/?where=usuario,{usuario}", headers=headers)
+    conn.request("GET", f"/tickify/api/usuario/?where=rut,{rut}", headers=headers)
     res = conn.getresponse()
     data = res.read().decode("utf-8")
 
@@ -190,11 +190,11 @@ def registrar_usuario():
 
 #============= Función para verificar el inicio de sesión =============#
 def verificar_login():
-    usuario = entry_usuario.get()
+    rut = entry_rut.get()
     clave = entry_clave.get()
     
-    token = obtener_token(usuario, clave)
-    usuario_session_data = obtener_usuario_session(token, usuario)
+    token = obtener_token(rut, clave)
+    usuario_session_data = obtener_usuario_session(token, rut)
 
     if token:
         messagebox.showinfo("Éxito", "Inicio de sesión exitoso")
@@ -470,7 +470,7 @@ def actualizar_departamentos(event):
 
 #============ Función para mostrar el login nuevamente ==============#
 def mostrar_login():
-    global ventana_login, entry_usuario, entry_clave
+    global ventana_login, entry_rut, entry_clave
     global entry_nombre, entry_correo, entry_usuario_reg, entry_clave_reg
 
     ventana_login = tk.Tk()
@@ -510,9 +510,9 @@ def mostrar_login():
     frame_login_form = tk.Frame(frame_login, bg="#f0f0f0")
     frame_login_form.pack(pady=20)
 
-    tk.Label(frame_login_form, text="Usuario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5)
-    entry_usuario = tk.Entry(frame_login_form, width=30, font=("Arial", 16))
-    entry_usuario.grid(row=0, column=1, pady=5)
+    tk.Label(frame_login_form, text="Rut:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5)
+    entry_rut = tk.Entry(frame_login_form, width=30, font=("Arial", 16))
+    entry_rut.grid(row=0, column=1, pady=5)
 
     tk.Label(frame_login_form, text="Contraseña:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5)
     entry_clave = tk.Entry(frame_login_form, show="*", width=30, font=("Arial", 16))
@@ -533,7 +533,7 @@ def mostrar_login():
     entry_correo = tk.Entry(frame_registro_form, width=30, font=("Arial", 16))
     entry_correo.grid(row=1, column=1, pady=5)
 
-    tk.Label(frame_registro_form, text="Usuario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5)
+    tk.Label(frame_registro_form, text="Rut:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5)
     entry_usuario_reg = tk.Entry(frame_registro_form, width=30, font=("Arial", 16))
     entry_usuario_reg.grid(row=2, column=1, pady=5)
 
