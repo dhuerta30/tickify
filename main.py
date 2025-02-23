@@ -94,7 +94,7 @@ def obtener_usuario_session(token, rut):
 
 
 #=================== Obtener Datos usuario tabla soporte ==========================#
-def obtener_datos_tabla_usuario(token, usuario_session_data):
+def obtener_datos_tabla_usuario(token, usuario_usuario):
     """Obtiene la información del usuario autenticado usando un token JWT."""
     
     conn = http.client.HTTPSConnection("developmentserver.cl")
@@ -102,12 +102,13 @@ def obtener_datos_tabla_usuario(token, usuario_session_data):
         'Authorization': f'Bearer {token}'
     }
 
-    cliente = quote(usuario_session_data)
-    status = quote("Ingresado")
+    #cliente = quote(nombre_usuario)
+    #status = quote("Ingresado")
 
-    conn.request("GET", f"/tickify/api/soporte/?where=cliente,{cliente},eq&where[]=status,{status},eq", headers=headers)
+    conn.request("GET", f"/tickify/api/soporte/cliente/{usuario_usuario}", headers=headers)
     res = conn.getresponse()
     data = res.read().decode("utf-8")
+    print(data)
    
     try:
         respuesta_json = json.loads(data)  # Convertir la respuesta en JSON
@@ -122,11 +123,11 @@ def obtener_datos_tabla_usuario(token, usuario_session_data):
         return None  # Manejo de
     
 #=================== Cargar Datos en la Grilla ==========================#
-def cargar_datos_en_grilla(tree, token, usuario_session_data):
+def cargar_datos_en_grilla(tree, token, usuario_usuario):
     """Carga los datos en la grilla (Treeview)."""
     tree.delete(*tree.get_children())  # Limpiar la tabla antes de insertar nuevos datos
 
-    datos = obtener_datos_tabla_usuario(token, usuario_session_data)
+    datos = obtener_datos_tabla_usuario(token, usuario_usuario)
    
     # Si no hay datos, salir de la función sin agregar filas
     if not datos:
