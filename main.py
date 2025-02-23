@@ -329,7 +329,7 @@ def iniciar_aplicacion(token, usuario_session_data):
     # Cargar datos en la grilla
     cargar_datos_en_grilla(tree, token, usuario_usuario)
 
-    button_eliminar = tk.Button(frame_tabla, text="Anular Ticket", command=anular_ticket, font=("Arial", 12, "bold"), bg="#D32F2F", fg="white", relief="flat", width=20, height=2)
+    button_eliminar = tk.Button(frame_tabla, text="Anular Ticket", command=lambda: anular_ticket(token), font=("Arial", 12, "bold"), bg="#D32F2F", fg="white", relief="flat", width=20, height=2)
     button_eliminar.pack(pady=10)
 
     app.mainloop()
@@ -424,13 +424,37 @@ def enviar_ticket(token):
 
 
 #=========== Eliminar Ticket ===============#
-def anular_ticket():
+def anular_ticket(token):
     selected_item = tree.selection()
     if not selected_item:
         messagebox.showwarning("Advertencia", "Seleccione un ticket para Anular.")
         return
-    messagebox.showinfo("Éxito", "Ticket Anulado con éxito.")
-    tree.delete(selected_item)
+
+    id_soporte = tree.item(selected_item, "values")[0]
+
+    respuesta = messagebox.askyesno("Confirmación", f"¿Está seguro de que desea anular el ticket con ID {id_soporte}?")
+    if respuesta:
+
+        try:
+            conn = http.client.HTTPSConnection("developmentserver.cl")
+            headers = {
+                'Authorization': f'Bearer {token}'
+            }
+
+            # Hacer la solicitud DELETE con el ID seleccionado
+            conn.request("DELETE", f"/tickify/api/soporte/?where=id_soporte={id_soporte}", headers=headers)
+            res = conn.getresponse()
+            data = res.read().decode("utf-8")
+
+            if res.status == 200:  # Si la solicitud fue exitosa
+                messagebox.showinfo("Éxito", f"Ticket con ID {id_soporte} Anulado con éxito.")
+                tree.delete(selected_item)  # Eliminarlo de la interfaz
+            else:
+                messagebox.showerror("Error", f"No se pudo anular el ticket. Respuesta: {data}")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Ocurrió un error: {str(e)}")
+
 
 #============= Mostrar Descripcion ==================#
 def mostrar_descripcion(event):
