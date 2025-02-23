@@ -449,16 +449,12 @@ def anular_ticket(token):
             }
 
             # Hacer la solicitud UPDATE con el ID seleccionado
-            conn.request("UPDATE", f"/tickify/api/soporte/?where=id_soporte={id_soporte}", body=datos_ticket, headers=headers)
+            conn.request("PUT", f"/tickify/api/soporte/{id_soporte}", body=datos_ticket, headers=headers)
             response = conn.getresponse()
             data = response.read().decode("utf-8")
-
-            if response.status == 200:  # Si la solicitud fue exitosa
-                messagebox.showinfo("Éxito", f"Ticket N° {id_soporte} Anulado con éxito.")
-                #tree.delete(selected_item)  # Eliminarlo de la interfaz
-                cargar_datos_en_grilla(tree, token, nombre)
-            else:
-                messagebox.showerror("Error", f"No se pudo anular el ticket. Respuesta: {data}")
+    
+            messagebox.showinfo("Éxito", f"Ticket N° {id_soporte} Anulado con éxito.")
+            cargar_datos_en_grilla(tree, token, nombre)
 
         except Exception as e:
             messagebox.showerror("Error", f"Ocurrió un error: {str(e)}")
