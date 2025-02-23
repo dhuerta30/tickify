@@ -431,6 +431,7 @@ def anular_ticket(token):
         return
 
     id_soporte = tree.item(selected_item, "values")[0]
+    nombre = tree.item(selected_item, "values")[1]
 
     respuesta = messagebox.askyesno("Confirmación", f"¿Está seguro de que desea anular el ticket con ID {id_soporte}?")
     if respuesta:
@@ -448,7 +449,8 @@ def anular_ticket(token):
 
             if res.status == 200:  # Si la solicitud fue exitosa
                 messagebox.showinfo("Éxito", f"Ticket con ID {id_soporte} Anulado con éxito.")
-                tree.delete(selected_item)  # Eliminarlo de la interfaz
+                #tree.delete(selected_item)  # Eliminarlo de la interfaz
+                cargar_datos_en_grilla(tree, token, nombre)
             else:
                 messagebox.showerror("Error", f"No se pudo anular el ticket. Respuesta: {data}")
 
