@@ -438,16 +438,22 @@ def anular_ticket(token):
 
         try:
             conn = http.client.HTTPSConnection("developmentserver.cl")
+            datos_ticket = json.dumps({
+                "data": {
+                    "status": "Anulado"
+                }
+            })
             headers = {
+                'Content-Type': 'application/json',
                 'Authorization': f'Bearer {token}'
             }
 
-            # Hacer la solicitud DELETE con el ID seleccionado
-            conn.request("DELETE", f"/tickify/api/soporte/?where=id_soporte={id_soporte}", headers=headers)
-            res = conn.getresponse()
-            data = res.read().decode("utf-8")
+            # Hacer la solicitud UPDATE con el ID seleccionado
+            conn.request("UPDATE", f"/tickify/api/soporte/?where=id_soporte={id_soporte}", body=datos_ticket, headers=headers)
+            response = conn.getresponse()
+            data = response.read().decode("utf-8")
 
-            if res.status == 200:  # Si la solicitud fue exitosa
+            if response.status == 200:  # Si la solicitud fue exitosa
                 messagebox.showinfo("Éxito", f"Ticket con ID {id_soporte} Anulado con éxito.")
                 #tree.delete(selected_item)  # Eliminarlo de la interfaz
                 cargar_datos_en_grilla(tree, token, nombre)
