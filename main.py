@@ -417,10 +417,10 @@ def enviar_ticket(token):
 
     # Limpiar los campos después del registro
     entry_departamento.delete(0, tk.END)
-    combo_asignado.delete(0, tk.END)
-    combo_incidente.delete(0, tk.END)
+    combo_asignado.set("")
+    combo_incidente.set("")
     text_descripcion.delete("1.0", tk.END)
-    combo_prioridad.delete(0, tk.END)
+    combo_prioridad.set("")
 
 
 #=========== Eliminar Ticket ===============#
