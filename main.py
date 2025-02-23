@@ -262,7 +262,7 @@ def iniciar_aplicacion(token, usuario_session_data):
     if isinstance(usuario_session_data, list) and usuario_session_data:
         datos_usuario = usuario_session_data[0]  # Extraer el primer elemento (diccionario)
         nombre_usuario = datos_usuario.get("nombre", "")  # Obtener el nombre del usuario
-        usuario_usuario = datos_usuario.get("usuario", "")  # Obtener el usuario del usuario
+        usuario_usuario = datos_usuario.get("usuario", "")  # Obtener el rut del usuario
     else:
         nombre_usuario = ""
 
@@ -377,9 +377,9 @@ def enviar_ticket(token):
     }
 
     # Enviar solicitud POST a la API
-    conn.request("POST", "/tickify/api/soporte", body=json.dumps(datos_ticket), headers=headers)
+    conn.request("POST", "/tickify/api/soporte", body=datos_ticket, headers=headers)
     response = conn.getresponse()
-    print(response)
+    response_data = response.read().decode("utf-8")
 
     # Estructura del correo en HTML
     email_body = f"""
