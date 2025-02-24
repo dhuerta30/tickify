@@ -10,7 +10,6 @@ from email.message import EmailMessage
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 from datetime import datetime
-from urllib.parse import quote
 
 def resource_path(relative_path):
     """ Devuelve la ruta absoluta del archivo, ya sea en desarrollo o empaquetado """
@@ -144,7 +143,7 @@ def cargar_datos_en_grilla(tree, token, rut_usuario):
 
     for item in datos:
         fecha_formateada = (
-            datetime.strptime(item.get("fecha", ""), "%Y-%m-%d").strftime("%d/%m/%Y") 
+            datetime.strptime(item.get("fecha", ""), "%Y-%m-%d").strftime("%d/%m/%Y")
             if item.get("fecha", "") else ""
         )
 
@@ -225,7 +224,36 @@ def cerrar_sesion():
     app.destroy()
     mostrar_login()
 
-#=============== Función para iniciar la aplicación principal ====================#
+#=================================== Formatear Rut ===========================================#
+def formatear_rut(event):
+    entry = event.widget  # Detecta qué campo activó el evento
+    rut = entry.get().replace(".", "").replace("-", "")  # Quitar puntos y guión
+
+    # Limitar la entrada a 9 caracteres (8 números + 1 dígito verificador)
+    if len(rut) > 9:
+        rut = rut[:9]
+
+    if len(rut) > 1:
+        rut_num = rut[:-1]  # Números del RUT sin el dígito verificador
+        dv = rut[-1].upper()  # Dígito verificador en mayúscula
+
+        # Validar que la parte numérica solo contenga números
+        if not rut_num.isdigit():
+            rut_num = "".join(filter(str.isdigit, rut_num))  # Eliminar caracteres no numéricos
+
+        # Validar que el dígito verificador sea un número o "K"
+        if not (dv.isdigit() or dv == "K"):
+            dv = ""  # Si es inválido, eliminarlo
+
+        # Formatear solo con guion
+        rut_formateado = f"{rut_num}-{dv}"
+
+        # Reemplazar el contenido del campo con el RUT formateado
+        entry.delete(0, tk.END)
+        entry.insert(0, rut_formateado)
+
+
+#=============== Función para iniciar la aplicación principal =================================#
 def iniciar_aplicacion(token, usuario_session_data):
     global app, entry_nombre, entry_rut_cliente, entry_departamento, combo_asignado, combo_incidente
     global text_descripcion, combo_prioridad, tree, label_descripcion
@@ -274,6 +302,7 @@ def iniciar_aplicacion(token, usuario_session_data):
     tk.Label(frame, text="Rut del Funcionario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5, sticky="w")
     entry_rut_cliente = tk.Entry(frame, width=40, font=("Arial", 16), state="normal")  # Campo solo lectura
     entry_rut_cliente.grid(row=1, column=1, pady=5)
+    entry_rut_cliente.bind("<KeyRelease>", formatear_rut)
     
     if isinstance(usuario_session_data, list) and usuario_session_data:
         datos_usuario = usuario_session_data[0]  # Extraer el primer elemento (diccionario)
@@ -445,7 +474,7 @@ def enviar_ticket(token):
     text_descripcion.delete("1.0", tk.END)
 
 
-#=========== Eliminar Ticket ===============#
+#=========== Anular Ticket ===============#
 def anular_ticket(token):
     selected_item = tree.selection()
     if not selected_item:
@@ -570,6 +599,7 @@ def mostrar_login():
     tk.Label(frame_login_form, text="Rut:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5)
     entry_rut = tk.Entry(frame_login_form, width=30, font=("Arial", 16))
     entry_rut.grid(row=0, column=1, pady=5)
+    entry_rut.bind("<KeyRelease>", formatear_rut)
 
     tk.Label(frame_login_form, text="Contraseña:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5)
     entry_clave = tk.Entry(frame_login_form, show="*", width=30, font=("Arial", 16))
