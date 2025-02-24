@@ -4,11 +4,20 @@ import json
 import bcrypt
 import smtplib
 import ssl
+import os
+import sys
 from email.message import EmailMessage
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 from datetime import datetime
 from urllib.parse import quote
+
+def resource_path(relative_path):
+    """ Devuelve la ruta absoluta del archivo, ya sea en desarrollo o empaquetado """
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 
 def obtener_token(rut, password):
     """Realiza una solicitud HTTP para obtener un token de autenticación."""
@@ -228,7 +237,8 @@ def iniciar_aplicacion(token, usuario_session_data):
 
     # Cargar imagen
     try:
-        imagen_original = Image.open("logo.png")
+        logo_path = resource_path(os.path.join("img", "logo.png"))
+        imagen_original = Image.open(logo_path)
         imagen_resized = imagen_original.resize((200, 60))
         imagen = ImageTk.PhotoImage(imagen_resized)
 
@@ -526,7 +536,8 @@ def mostrar_login():
 
     # Cargar imagen
     try:
-        imagen_original = Image.open("logo.png")
+        logo_path = resource_path(os.path.join("img", "logo.png"))
+        imagen_original = Image.open(logo_path)
         imagen_resized = imagen_original.resize((200, 60))
         imagen = ImageTk.PhotoImage(imagen_resized)
 
