@@ -94,7 +94,7 @@ def obtener_usuario_session(token, rut):
 
 
 #=================== Obtener Datos usuario tabla soporte ==========================#
-def obtener_datos_tabla_usuario(token, usuario_usuario):
+def obtener_datos_tabla_usuario(token, rut_usuario):
     """Obtiene la información del usuario autenticado usando un token JWT."""
     
     conn = http.client.HTTPSConnection("developmentserver.cl")
@@ -105,10 +105,9 @@ def obtener_datos_tabla_usuario(token, usuario_usuario):
     #cliente = quote(nombre_usuario)
     #status = quote("Ingresado")
 
-    conn.request("GET", f"/tickify/api/soporte/cliente/{usuario_usuario}", headers=headers)
+    conn.request("GET", f"/tickify/api/soporte/rut_cliente/{rut_usuario}", headers=headers)
     res = conn.getresponse()
     data = res.read().decode("utf-8")
-    print(data)
    
     try:
         respuesta_json = json.loads(data)  # Convertir la respuesta en JSON
@@ -123,11 +122,12 @@ def obtener_datos_tabla_usuario(token, usuario_usuario):
         return None  # Manejo de
     
 #=================== Cargar Datos en la Grilla ==========================#
-def cargar_datos_en_grilla(tree, token, usuario_usuario):
+def cargar_datos_en_grilla(tree, token, rut_usuario):
     """Carga los datos en la grilla (Treeview)."""
     tree.delete(*tree.get_children())  # Limpiar la tabla antes de insertar nuevos datos
 
-    datos = obtener_datos_tabla_usuario(token, usuario_usuario)
+    datos = obtener_datos_tabla_usuario(token, rut_usuario)
+    #print(datos)
    
     # Si no hay datos, salir de la función sin agregar filas
     if not datos:
@@ -142,6 +142,7 @@ def cargar_datos_en_grilla(tree, token, usuario_usuario):
         tree.insert("", "end", values=(
             item.get("id_soporte", ""),
             item.get("cliente", ""),
+            item.get("rut_cliente", ""),
             fecha_formateada,  # Fecha en formato d-m-Y
             item.get("designado_a", ""),
             item.get("area", ""),
@@ -217,7 +218,7 @@ def cerrar_sesion():
 
 #=============== Función para iniciar la aplicación principal ====================#
 def iniciar_aplicacion(token, usuario_session_data):
-    global app, entry_nombre, entry_departamento, combo_asignado, combo_incidente
+    global app, entry_nombre, entry_rut_cliente, entry_departamento, combo_asignado, combo_incidente
     global text_descripcion, combo_prioridad, tree, label_descripcion
 
     app = tk.Tk()
@@ -256,20 +257,29 @@ def iniciar_aplicacion(token, usuario_session_data):
     frame.pack(pady=20)
 
     tk.Label(frame, text="Nombre del Funcionario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=0, column=0, pady=5, sticky="w")
-    entry_nombre = tk.Entry(frame, width=40, font=("Arial", 16))
+    entry_nombre = tk.Entry(frame, width=40, font=("Arial", 16), state="normal")
     entry_nombre.grid(row=0, column=1, pady=5)
     
+    # Rut del Funcionario (AQUÍ ESTÁ EL ERROR: Estaba en row=0, debe ser row=1)
+    tk.Label(frame, text="Rut del Funcionario:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5, sticky="w")
+    entry_rut_cliente = tk.Entry(frame, width=40, font=("Arial", 16), state="normal")  # Campo solo lectura
+    entry_rut_cliente.grid(row=1, column=1, pady=5)
     
     if isinstance(usuario_session_data, list) and usuario_session_data:
         datos_usuario = usuario_session_data[0]  # Extraer el primer elemento (diccionario)
         nombre_usuario = datos_usuario.get("nombre", "")  # Obtener el nombre del usuario
         usuario_usuario = datos_usuario.get("usuario", "")  # Obtener el rut del usuario
+        rut_usuario = datos_usuario.get("rut", "")
     else:
         nombre_usuario = ""
 
     entry_nombre.insert(0, nombre_usuario)
+    entry_rut_cliente.insert(0, rut_usuario)
 
-    tk.Label(frame, text="Asignado a:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=1, column=0, pady=5, sticky="w")
+    entry_nombre.config(state="readonly")
+    entry_rut_cliente.config(state="readonly")
+
+    tk.Label(frame, text="Asignado a:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5, sticky="w")
     combo_asignado = ttk.Combobox(frame, values=[
         "Jorge Nicolas Berrios Cornejo",
         "Sergio Andrés Concha Llanos",
@@ -278,14 +288,14 @@ def iniciar_aplicacion(token, usuario_session_data):
         "Daniel Bernardo Huerta Rojas",
         "Leonardo Antonio Martinez Vera"
     ], state="readonly", width=38, font=("Arial", 16))
-    combo_asignado.grid(row=1, column=1, pady=5)
+    combo_asignado.grid(row=2, column=1, pady=5)
     combo_asignado.bind("<<ComboboxSelected>>", actualizar_departamentos)
 
-    tk.Label(frame, text="Departamento:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5, sticky="w")
+    tk.Label(frame, text="Departamento:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=3, column=0, pady=5, sticky="w")
     entry_departamento = ttk.Combobox(frame, values=["Soporte Informática", "Desarrollo de Sistemas"], state="readonly", width=38, font=("Arial", 16))
-    entry_departamento.grid(row=2, column=1, pady=5)
+    entry_departamento.grid(row=3, column=1, pady=5)
 
-    tk.Label(frame, text="Incidente:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=3, column=0, pady=5, sticky="w")
+    tk.Label(frame, text="Incidente:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=4, column=0, pady=5, sticky="w")
     combo_incidente = ttk.Combobox(frame, values=[
         "Instalación de Office",
         "Instalación de Antivirus",
@@ -298,15 +308,15 @@ def iniciar_aplicacion(token, usuario_session_data):
         "Reportar Impresora Defectuosa",
         "Otro"
     ], state="readonly", width=38, font=("Arial", 16))
-    combo_incidente.grid(row=3, column=1, pady=5)
+    combo_incidente.grid(row=4, column=1, pady=5)
     combo_incidente.bind("<<ComboboxSelected>>", mostrar_descripcion)
 
     label_descripcion = tk.Label(frame, text="Descripción:", font=("Arial", 16, "bold"), bg="#f0f0f0")
     text_descripcion = tk.Text(frame, width=40, height=5, font=("Arial", 16))
 
-    tk.Label(frame, text="Prioridad:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=4, column=0, pady=5, sticky="w")
+    tk.Label(frame, text="Prioridad:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=5, column=0, pady=5, sticky="w")
     combo_prioridad = ttk.Combobox(frame, values=["Alta", "Media", "Baja"], state="readonly", width=38, font=("Arial", 16))
-    combo_prioridad.grid(row=4, column=1, pady=5)
+    combo_prioridad.grid(row=5, column=1, pady=5)
 
     button_enviar = tk.Button(frame_formulario, text="Enviar Ticket", command=lambda: enviar_ticket(token), font=("Arial", 16, "bold"), bg="#4CAF50", fg="white", relief="flat", width=20, height=2)
     button_enviar.pack(pady=20)
@@ -316,7 +326,7 @@ def iniciar_aplicacion(token, usuario_session_data):
     button_cerrar_sesion.pack(pady=10)
 
     # --- Tabla de tickets ---
-    columns = ("N°Ticket", "Nombre del Funcionario", "Fecha", "Asignado a", "Departamento", "Incidente", "Prioridad", "Status", "Descripción")
+    columns = ("N°Ticket", "Nombre del Funcionario", "Rut del Funcionario", "Fecha", "Asignado a", "Departamento", "Incidente", "Prioridad", "Status", "Descripción")
     tree = ttk.Treeview(frame_tabla, columns=columns, show="headings", height=10)
 
     for col in columns:
@@ -328,7 +338,7 @@ def iniciar_aplicacion(token, usuario_session_data):
     tree.pack(expand=True, fill="both", pady=20)
 
     # Cargar datos en la grilla
-    cargar_datos_en_grilla(tree, token, usuario_usuario)
+    cargar_datos_en_grilla(tree, token, rut_usuario)
 
     button_eliminar = tk.Button(frame_tabla, text="Anular Ticket", command=lambda: anular_ticket(token), font=("Arial", 12, "bold"), bg="#D32F2F", fg="white", relief="flat", width=20, height=2)
     button_eliminar.pack(pady=10)
@@ -339,6 +349,7 @@ def iniciar_aplicacion(token, usuario_session_data):
 def enviar_ticket(token):
     """Envía un ticket a la API."""
     nombre = entry_nombre.get()
+    rut_cliente = entry_rut_cliente.get()
     departamento = entry_departamento.get()
     asignado_a = combo_asignado.get()
     incidente = combo_incidente.get()
@@ -351,15 +362,15 @@ def enviar_ticket(token):
         messagebox.showwarning("Advertencia", "Daniel Bernardo Huerta Rojas solo puede ser asignado a Desarrollo de Sistemas.")
         return
 
-    if not nombre or not departamento or not asignado_a or not incidente or not prioridad or (incidente == "Otro" and not descripcion):
+    if not nombre or not rut_cliente or not departamento or not asignado_a or not incidente or not prioridad or (incidente == "Otro" and not descripcion):
         messagebox.showwarning("Advertencia", "Todos los campos son obligatorios")
         return
 
     # Crear conexión con la API
-   
     datos_ticket = json.dumps({
         "data": {
             "cliente": nombre,
+            "rut_cliente": rut_cliente,
             "fecha": fecha_creacion,
             "area": departamento,
             "designado_a": asignado_a,
@@ -414,14 +425,14 @@ def enviar_ticket(token):
 
     messagebox.showinfo("Éxito", "Ticket registrado con éxito, enviaremos un técnico para que resuelva su problema a la brevedad.")
 
-    cargar_datos_en_grilla(tree, token, nombre)
+    cargar_datos_en_grilla(tree, token, rut_cliente)
 
     # Limpiar los campos después del registro
-    entry_departamento.delete(0, tk.END)
     combo_asignado.set("")
+    entry_departamento.delete(0, tk.END)
     combo_incidente.set("")
-    text_descripcion.delete("1.0", tk.END)
     combo_prioridad.set("")
+    text_descripcion.delete("1.0", tk.END)
 
 
 #=========== Eliminar Ticket ===============#
@@ -433,6 +444,7 @@ def anular_ticket(token):
 
     id_soporte = tree.item(selected_item, "values")[0]
     nombre = tree.item(selected_item, "values")[1]
+    rut_cliente = tree.item(selected_item, "values")[2]
 
     respuesta = messagebox.askyesno("Confirmación", f"¿Está seguro de que desea anular el ticket N° {id_soporte}?")
     if respuesta:
@@ -455,7 +467,7 @@ def anular_ticket(token):
             data = response.read().decode("utf-8")
     
             messagebox.showinfo("Éxito", f"Ticket N° {id_soporte} Anulado con éxito.")
-            cargar_datos_en_grilla(tree, token, nombre)
+            cargar_datos_en_grilla(tree, token, rut_cliente)
 
         except Exception as e:
             messagebox.showerror("Error", f"Ocurrió un error: {str(e)}")
@@ -464,8 +476,8 @@ def anular_ticket(token):
 #============= Mostrar Descripcion ==================#
 def mostrar_descripcion(event):
     if combo_incidente.get() == "Otro":
-        label_descripcion.grid(row=5, column=0, pady=5, sticky="w")
-        text_descripcion.grid(row=5, column=1, pady=5)
+        label_descripcion.grid(row=6, column=0, pady=5, sticky="w")
+        text_descripcion.grid(row=6, column=1, pady=5)
     else:
         label_descripcion.grid_forget()
         text_descripcion.grid_forget()
@@ -480,8 +492,8 @@ def actualizar_departamentos(event):
         combo_incidente["values"] = ["Otro"]
         combo_incidente.set("Otro")
 
-        label_descripcion.grid(row=5, column=0, pady=5, sticky="w")
-        text_descripcion.grid(row=5, column=1, pady=5)
+        label_descripcion.grid(row=6, column=0, pady=5, sticky="w")
+        text_descripcion.grid(row=6, column=1, pady=5)
         
     else:
 
