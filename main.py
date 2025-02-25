@@ -253,13 +253,17 @@ def formatear_rut(event):
         entry.insert(0, rut_formateado)
 
 
+def version():
+    version = "1.1"
+    return version
+
 #=============== Función para iniciar la aplicación principal =================================#
 def iniciar_aplicacion(token, usuario_session_data):
     global app, entry_nombre, entry_rut_cliente, entry_departamento, combo_asignado, combo_incidente
     global text_descripcion, combo_prioridad, tree, label_descripcion
 
     app = tk.Tk()
-    app.title("Tickify - Gestión de Tickets - Versión 1.0")
+    app.title("Tickify - Gestión de Tickets - Versión " + version())
     app.geometry("800x800")
     app.config(bg="#f0f0f0")
 
@@ -559,7 +563,7 @@ def mostrar_login():
     global entry_nombre, entry_correo, entry_rut_reg, entry_clave_reg
 
     ventana_login = tk.Tk()
-    ventana_login.title("Tickify - Acceso Funcionarios a Ticket de Soporte - Versión 1.0")
+    ventana_login.title("Tickify - Acceso Funcionarios a Ticket de Soporte - Versión " + version())
     ventana_login.geometry("800x700")
     ventana_login.config(bg="#f0f0f0")
 
@@ -623,6 +627,7 @@ def mostrar_login():
     tk.Label(frame_registro_form, text="Rut:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=2, column=0, pady=5)
     entry_rut_reg = tk.Entry(frame_registro_form, width=30, font=("Arial", 16))
     entry_rut_reg.grid(row=2, column=1, pady=5)
+    entry_rut_reg.bind("<KeyRelease>", formatear_rut)
 
     tk.Label(frame_registro_form, text="Contraseña:", font=("Arial", 16, "bold"), bg="#f0f0f0").grid(row=3, column=0, pady=5)
     entry_clave_reg = tk.Entry(frame_registro_form, show="*", width=30, font=("Arial", 16))
